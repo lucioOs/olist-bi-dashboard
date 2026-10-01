@@ -1,0 +1,7 @@
+expression DataFolder = "C:\Users\DARJHEART\OneDrive - Instituto Politecnico Nacional\Documents\olist-bi-dashboard\data\processed\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 1584ed31-f74b-49c9-85d7-b57e9025d5f9
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Text
+

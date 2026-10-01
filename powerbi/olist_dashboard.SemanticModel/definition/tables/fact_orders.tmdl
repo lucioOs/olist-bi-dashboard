@@ -1,0 +1,465 @@
+table fact_orders
+	lineageTag: 4f85c175-ebbc-4c27-bcce-849529ae42e1
+
+	column order_id
+		dataType: string
+		lineageTag: 1ad6f756-0962-4bc0-b47d-4d5e2e2d4c3f
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_unique_id
+		dataType: string
+		isHidden
+		lineageTag: 82234d8c-e07c-488c-b45c-9f22f6f50928
+		summarizeBy: none
+		sourceColumn: customer_unique_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 31fd99e2-7152-444f-811c-98505670f53e
+		summarizeBy: none
+		sourceColumn: date_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column purchase_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a63d9229-43fa-405f-9f6b-eb4489992f07
+		summarizeBy: none
+		sourceColumn: purchase_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column order_purchase_timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e48067e0-3e38-42a8-9fb1-271f1274e76b
+		summarizeBy: none
+		sourceColumn: order_purchase_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_status
+		dataType: string
+		lineageTag: bcb470cc-959f-4f79-9604-d96532bfaafd
+		summarizeBy: none
+		sourceColumn: order_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_sale
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: fe54ae0d-d847-42cb-b8df-e7cabef52cd2
+		summarizeBy: none
+		sourceColumn: is_sale
+
+		annotation SummarizationSetBy = Automatic
+
+	column has_items
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 869c9832-bd82-43a9-b817-40dff5547f64
+		summarizeBy: none
+		sourceColumn: has_items
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_delivered
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: c21fce0f-377a-4df7-961f-5f34ca94556e
+		summarizeBy: none
+		sourceColumn: is_delivered
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_late
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 1e68dd75-9893-4d48-960e-f280e51d5b6b
+		summarizeBy: none
+		sourceColumn: is_late
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_multi_seller
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 93fcd30b-95be-415e-a494-e8be8d088d10
+		summarizeBy: none
+		sourceColumn: is_multi_seller
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_repeat_purchase
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: de2a7c14-93af-4561-affd-843f4f925439
+		summarizeBy: none
+		sourceColumn: is_repeat_purchase
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_order_seq
+		dataType: int64
+		formatString: 0
+		lineageTag: 9dfce24b-85a7-4aab-8e2a-04992228091c
+		summarizeBy: none
+		sourceColumn: customer_order_seq
+
+		annotation SummarizationSetBy = User
+
+	column items_count
+		dataType: int64
+		formatString: 0
+		lineageTag: c587124a-11d3-4127-a243-9b9240e2524d
+		summarizeBy: sum
+		sourceColumn: items_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column products_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 87c57c6f-0aa8-4571-896a-bcb6fbdc7136
+		summarizeBy: sum
+		sourceColumn: products_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column sellers_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 2d6ddbb3-a7a8-4a7c-8b4d-2c2e04e2f734
+		summarizeBy: sum
+		sourceColumn: sellers_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column items_price
+		dataType: decimal
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 89a0eb79-6741-484d-9d1e-9cb18fcf8c19
+		summarizeBy: sum
+		sourceColumn: items_price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-MX"}
+
+	column freight_total
+		dataType: decimal
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: b8fdc9dc-550f-4b59-906b-df2fbbb52983
+		summarizeBy: sum
+		sourceColumn: freight_total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-MX"}
+
+	column order_value
+		dataType: decimal
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: c40305f3-1c7f-4b8d-96b8-6b2bc80db0b6
+		summarizeBy: sum
+		sourceColumn: order_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-MX"}
+
+	column payment_total
+		dataType: decimal
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: f4c81fd8-8366-490b-9b74-465e13e38f7a
+		summarizeBy: sum
+		sourceColumn: payment_total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-MX"}
+
+	column main_payment_type
+		dataType: string
+		lineageTag: 1784523d-2492-4fb5-88f9-4d221d2dfd4f
+		summarizeBy: none
+		sourceColumn: main_payment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_methods
+		dataType: int64
+		formatString: 0
+		lineageTag: 77f97041-d2fd-443f-aa13-c24bddfe7125
+		summarizeBy: sum
+		sourceColumn: payment_methods
+
+		annotation SummarizationSetBy = Automatic
+
+	column max_installments
+		dataType: int64
+		formatString: 0
+		lineageTag: 6cb82b97-136c-4a49-a0a6-d2420064c141
+		summarizeBy: none
+		sourceColumn: max_installments
+
+		annotation SummarizationSetBy = User
+
+	column is_installment
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 31859530-af32-48ca-8947-c990ed024b5d
+		summarizeBy: none
+		sourceColumn: is_installment
+
+		annotation SummarizationSetBy = Automatic
+
+	column used_voucher
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 53660292-820e-471a-a590-47843f2d49e8
+		summarizeBy: none
+		sourceColumn: used_voucher
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_approved_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8e4a7eb6-7d09-4d57-919e-5332d2e361ce
+		summarizeBy: none
+		sourceColumn: order_approved_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_delivered_carrier_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8982e6b8-c34f-48c9-87e8-4d60148fce33
+		summarizeBy: none
+		sourceColumn: order_delivered_carrier_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_delivered_customer_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d5e749fe-b927-4308-804e-f64f318082fe
+		summarizeBy: none
+		sourceColumn: order_delivered_customer_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_estimated_delivery_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 99775a29-b73b-4ac3-9c48-418ec3f101a9
+		summarizeBy: none
+		sourceColumn: order_estimated_delivery_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column approval_hours
+		dataType: double
+		lineageTag: b65c00c4-1f56-4fb4-b0ba-c279009077ed
+		summarizeBy: sum
+		sourceColumn: approval_hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column carrier_lead_days
+		dataType: double
+		lineageTag: 8ec469ce-c2c3-49c0-b00c-e2489220ac4d
+		summarizeBy: sum
+		sourceColumn: carrier_lead_days
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column last_mile_days
+		dataType: double
+		lineageTag: cce8f2a1-8018-4489-a357-e613e5601537
+		summarizeBy: sum
+		sourceColumn: last_mile_days
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column delivery_days
+		dataType: double
+		lineageTag: cebf8188-a7e3-4888-b81b-2455a7558652
+		summarizeBy: sum
+		sourceColumn: delivery_days
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column promised_days
+		dataType: double
+		lineageTag: 79a9f340-bb1e-4de8-8387-f775860f68ca
+		summarizeBy: sum
+		sourceColumn: promised_days
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column delay_days
+		dataType: double
+		lineageTag: bd496d74-5cc6-4964-b5b0-500f3ffc7b28
+		summarizeBy: sum
+		sourceColumn: delay_days
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column flag_carrier_before_approval
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 5448a93c-ccc0-497f-a107-30875541d92e
+		summarizeBy: none
+		sourceColumn: flag_carrier_before_approval
+
+		annotation SummarizationSetBy = Automatic
+
+	column flag_delivered_before_carrier
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 48916783-ea09-45ac-b265-11e1791dc6de
+		summarizeBy: none
+		sourceColumn: flag_delivered_before_carrier
+
+		annotation SummarizationSetBy = Automatic
+
+	column has_review
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 79c96d32-a501-49dd-afff-496a5cd0e3e3
+		summarizeBy: none
+		sourceColumn: has_review
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_score
+		dataType: int64
+		formatString: 0
+		lineageTag: 0f81421b-320d-4786-b8b1-6440505bf9a9
+		summarizeBy: none
+		sourceColumn: review_score
+
+		annotation SummarizationSetBy = User
+
+	column review_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 71d67fb8-3ec0-4144-8c9d-64df68b2fcb5
+		summarizeBy: sum
+		sourceColumn: review_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column has_comment
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 38e14579-9520-422d-8d45-6b69367b81ae
+		summarizeBy: none
+		sourceColumn: has_comment
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_response_hours
+		dataType: double
+		lineageTag: b51e0f23-1b66-4334-b545-908dda7a1eb6
+		summarizeBy: sum
+		sourceColumn: review_response_hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_orders = m
+		mode: import
+		source =
+				// fact_orders - generated by src/export.py (do not edit by hand)
+				let
+				    Source = Csv.Document(
+				        File.Contents(DataFolder & "fact_orders.csv"),
+				        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+				    ),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    // Empty CSV fields -> null (otherwise numeric/logical conversion fails)
+				    Nulls = Table.ReplaceValue(Promoted, "", null, Replacer.ReplaceValue, Table.ColumnNames(Promoted)),
+				    Typed = Table.TransformColumnTypes(Nulls, {
+				        {"order_id", type text},
+				        {"customer_unique_id", type text},
+				        {"date_key", Int64.Type},
+				        {"purchase_date", type date},
+				        {"order_purchase_timestamp", type datetime},
+				        {"order_status", type text},
+				        {"is_sale", type logical},
+				        {"has_items", type logical},
+				        {"is_delivered", type logical},
+				        {"is_late", type logical},
+				        {"is_multi_seller", type logical},
+				        {"is_repeat_purchase", type logical},
+				        {"customer_order_seq", Int64.Type},
+				        {"items_count", Int64.Type},
+				        {"products_count", Int64.Type},
+				        {"sellers_count", Int64.Type},
+				        {"items_price", Currency.Type},
+				        {"freight_total", Currency.Type},
+				        {"order_value", Currency.Type},
+				        {"payment_total", Currency.Type},
+				        {"main_payment_type", type text},
+				        {"payment_methods", Int64.Type},
+				        {"max_installments", Int64.Type},
+				        {"is_installment", type logical},
+				        {"used_voucher", type logical},
+				        {"order_approved_at", type datetime},
+				        {"order_delivered_carrier_date", type datetime},
+				        {"order_delivered_customer_date", type datetime},
+				        {"order_estimated_delivery_date", type date},
+				        {"approval_hours", type number},
+				        {"carrier_lead_days", type number},
+				        {"last_mile_days", type number},
+				        {"delivery_days", type number},
+				        {"promised_days", type number},
+				        {"delay_days", type number},
+				        {"flag_carrier_before_approval", type logical},
+				        {"flag_delivered_before_carrier", type logical},
+				        {"has_review", type logical},
+				        {"review_score", Int64.Type},
+				        {"review_count", Int64.Type},
+				        {"has_comment", type logical},
+				        {"review_response_hours", type number}
+				    }, "en-US")
+				in
+				    Typed
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

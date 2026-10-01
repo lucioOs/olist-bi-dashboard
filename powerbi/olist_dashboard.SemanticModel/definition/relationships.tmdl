@@ -1,0 +1,24 @@
+relationship a390bf72-a34f-c289-5cd3-f2277d489af9
+	fromColumn: fact_orders.customer_unique_id
+	toColumn: dim_customer.customer_unique_id
+
+relationship 9e0d2568-5c82-29f0-0098-59af11b470c2
+	fromColumn: fact_orders.date_key
+	toColumn: dim_date.date_key
+
+relationship fd9e49d9-c88c-4032-21c5-47f911678305
+	fromColumn: fact_order_items.customer_unique_id
+	toColumn: dim_customer.customer_unique_id
+
+relationship 2eb70c34-3b15-9754-e707-0f44481777ee
+	fromColumn: fact_order_items.date_key
+	toColumn: dim_date.date_key
+
+relationship f5502b2c-02a5-c5e6-33a4-c369bcce6858
+	fromColumn: fact_order_items.product_id
+	toColumn: dim_product.product_id
+
+relationship ffde7421-b351-fdbd-ab30-4bbc9fedd6be
+	fromColumn: fact_order_items.seller_id
+	toColumn: dim_seller.seller_id
+

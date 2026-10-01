@@ -29,3 +29,7 @@ powerbi/*.pbix.bak
 Thumbs.db
 .vscode/
 .idea/
+
+# --- Power BI Project (.pbip): keep the model/report definition, ignore local cache ---
+powerbi/**/.pbi/localSettings.json
+powerbi/**/.pbi/cache.abf

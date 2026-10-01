@@ -1,0 +1,241 @@
+table fact_order_items
+	lineageTag: 86d6057a-7cf2-4afc-8902-58c2c4c2bb9e
+
+	column order_id
+		dataType: string
+		lineageTag: 2bbcae3b-f9e4-4640-b6b9-6e7e9e48f34c
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_item_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 6d71a2a8-a653-40a0-8271-4c693eb9cb26
+		summarizeBy: none
+		sourceColumn: order_item_id
+
+		annotation SummarizationSetBy = User
+
+	column product_id
+		dataType: string
+		isHidden
+		lineageTag: 6e552107-a107-40fd-a53c-612182df922a
+		summarizeBy: none
+		sourceColumn: product_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_id
+		dataType: string
+		isHidden
+		lineageTag: 50095a64-6b06-4432-9ea8-08277eb070e0
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_unique_id
+		dataType: string
+		isHidden
+		lineageTag: 793d173f-35cd-46a0-aed8-60746b409d13
+		summarizeBy: none
+		sourceColumn: customer_unique_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7b968106-643a-4d6c-838e-249201339760
+		summarizeBy: none
+		sourceColumn: date_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column purchase_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9bcf7e52-cdb2-4dc4-953c-b59489e6e989
+		summarizeBy: none
+		sourceColumn: purchase_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column shipping_limit_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 2d638abb-0fe7-4c01-a145-3f0e9e8fc61c
+		summarizeBy: none
+		sourceColumn: shipping_limit_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column price
+		dataType: decimal
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 205d837f-5656-4e0b-a276-f14d755002f0
+		summarizeBy: sum
+		sourceColumn: price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-MX"}
+
+	column freight_value
+		dataType: decimal
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 86f53d5c-8222-4480-a6cf-221e7bf740c0
+		summarizeBy: sum
+		sourceColumn: freight_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-MX"}
+
+	column item_total
+		dataType: decimal
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 356fd8a6-68a6-4c4a-aef0-34690ad80901
+		summarizeBy: sum
+		sourceColumn: item_total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-MX"}
+
+	column freight_share
+		dataType: double
+		lineageTag: 03e31f3b-c699-43ef-b317-9231e003f42a
+		summarizeBy: sum
+		sourceColumn: freight_share
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column freight_gt_price
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 0003f57e-d2c7-4935-a530-09ea257a8f4c
+		summarizeBy: none
+		sourceColumn: freight_gt_price
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_status
+		dataType: string
+		lineageTag: b61d57bd-8791-471b-a612-45e634772db7
+		summarizeBy: none
+		sourceColumn: order_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_sale
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 5689b88f-a231-4cac-be0d-63bfef78b819
+		summarizeBy: none
+		sourceColumn: is_sale
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_delivered
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 0f4b73a4-f26a-4ef1-9d1e-7e6bb1793b70
+		summarizeBy: none
+		sourceColumn: is_delivered
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_late
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 992f1095-66c5-446d-92b1-f022749ac5c4
+		summarizeBy: none
+		sourceColumn: is_late
+
+		annotation SummarizationSetBy = Automatic
+
+	column delivery_days
+		dataType: double
+		lineageTag: fe90e5e5-5872-4d95-9b79-7c60888aeda7
+		summarizeBy: sum
+		sourceColumn: delivery_days
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column review_score
+		dataType: int64
+		formatString: 0
+		lineageTag: b1003995-bafa-4c20-a0c2-ee9f0cf32914
+		summarizeBy: none
+		sourceColumn: review_score
+
+		annotation SummarizationSetBy = User
+
+	column is_multi_seller
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 8e938c03-1203-4a24-9b8a-0c665b2ce055
+		summarizeBy: none
+		sourceColumn: is_multi_seller
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_order_items = m
+		mode: import
+		source =
+				// fact_order_items - generated by src/export.py (do not edit by hand)
+				let
+				    Source = Csv.Document(
+				        File.Contents(DataFolder & "fact_order_items.csv"),
+				        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+				    ),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    // Empty CSV fields -> null (otherwise numeric/logical conversion fails)
+				    Nulls = Table.ReplaceValue(Promoted, "", null, Replacer.ReplaceValue, Table.ColumnNames(Promoted)),
+				    Typed = Table.TransformColumnTypes(Nulls, {
+				        {"order_id", type text},
+				        {"order_item_id", Int64.Type},
+				        {"product_id", type text},
+				        {"seller_id", type text},
+				        {"customer_unique_id", type text},
+				        {"date_key", Int64.Type},
+				        {"purchase_date", type date},
+				        {"shipping_limit_date", type datetime},
+				        {"price", Currency.Type},
+				        {"freight_value", Currency.Type},
+				        {"item_total", Currency.Type},
+				        {"freight_share", type number},
+				        {"freight_gt_price", type logical},
+				        {"order_status", type text},
+				        {"is_sale", type logical},
+				        {"is_delivered", type logical},
+				        {"is_late", type logical},
+				        {"delivery_days", type number},
+				        {"review_score", Int64.Type},
+				        {"is_multi_seller", type logical}
+				    }, "en-US")
+				in
+				    Typed
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

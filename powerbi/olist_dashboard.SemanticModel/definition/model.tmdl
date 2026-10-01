@@ -1,0 +1,25 @@
+model Model
+	culture: es-MX
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-MX
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["DevMode","TMDLView_Desktop"]
+
+annotation PBI_QueryOrder = ["DataFolder","dim_date","dim_product","dim_seller","dim_customer","fact_order_items","fact_orders","_Measures"]
+
+ref table dim_date
+ref table dim_product
+ref table dim_seller
+ref table dim_customer
+ref table fact_order_items
+ref table fact_orders
+ref table _Measures
+
+ref cultureInfo es-MX
+

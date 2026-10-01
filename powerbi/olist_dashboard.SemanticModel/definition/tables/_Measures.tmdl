@@ -1,0 +1,364 @@
+table _Measures
+	lineageTag: 4aaa893e-6cd4-4d00-80b7-8b619653f3d9
+
+	/// Sum of item prices for real sales (excludes canceled / unavailable orders)
+	measure Revenue =
+			// Sum of item prices for real sales (excludes canceled / unavailable orders)
+			CALCULATE ( SUM ( fact_order_items[price] ), fact_order_items[is_sale] = TRUE () )
+		formatString: R$ #,0.00
+		displayFolder: 1 Sales
+		lineageTag: d9abf0f2-9e7b-4617-8d6f-bf6d31ffc6da
+
+	measure Orders =
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_order_items[order_id] ),
+			    fact_order_items[is_sale] = TRUE ()
+			)
+		formatString: #,0
+		displayFolder: 1 Sales
+		lineageTag: 8edaabdf-10cd-40c9-b652-0c81b887286b
+
+	/// Average order value (ticket promedio)
+	measure AOV =
+			// Average order value (ticket promedio)
+			DIVIDE ( [Revenue], [Orders] )
+		formatString: R$ #,0.00
+		displayFolder: 1 Sales
+		lineageTag: 3e4e0078-1d7a-451f-b88a-ee6a82bd31a2
+
+	measure 'Items Sold' = CALCULATE ( COUNTROWS ( fact_order_items ), fact_order_items[is_sale] = TRUE () )
+		formatString: #,0
+		displayFolder: 1 Sales
+		lineageTag: eeed5587-912e-412d-b027-e2a3decb8396
+
+	measure Freight = CALCULATE ( SUM ( fact_order_items[freight_value] ), fact_order_items[is_sale] = TRUE () )
+		formatString: R$ #,0.00
+		displayFolder: 1 Sales
+		lineageTag: 12377b2f-9085-48bf-8502-54713e144888
+
+	measure 'Freight % of Revenue' = DIVIDE ( [Freight], [Revenue] )
+		formatString: 0.0%
+		displayFolder: 1 Sales
+		lineageTag: 0b96c0ee-1d27-40ab-9fdd-26ea8f9ee981
+
+	/// Previous month; blank when either month is incomplete (avoids fake +-1000 % spikes)
+	measure 'Revenue PM' =
+			// Previous month; blank when either month is incomplete (avoids fake +-1000 % spikes)
+			VAR CurrentComplete =
+			    NOT ( FALSE () IN VALUES ( dim_date[is_complete_month] ) )
+			VAR PreviousComplete =
+			    CALCULATE (
+			        COUNTROWS ( dim_date ),
+			        DATEADD ( dim_date[date], -1, MONTH ),
+			        dim_date[is_complete_month] = TRUE ()
+			    ) > 0
+			RETURN
+			    IF ( CurrentComplete && PreviousComplete,
+			        CALCULATE ( [Revenue], DATEADD ( dim_date[date], -1, MONTH ) ) )
+		formatString: R$ #,0.00
+		displayFolder: 1 Sales
+		lineageTag: 31a702f8-1b75-4625-9d90-3608dd7263bc
+
+	measure 'Revenue MoM %' =
+			VAR PM = [Revenue PM]
+			RETURN IF ( NOT ISBLANK ( PM ), DIVIDE ( [Revenue] - PM, PM ) )
+		formatString: 0.0%
+		displayFolder: 1 Sales
+		lineageTag: 84cc651a-7c06-42c8-809a-47b497ee05dd
+
+	measure 'Orders PM' =
+			IF ( NOT ISBLANK ( [Revenue PM] ),
+			    CALCULATE ( [Orders], DATEADD ( dim_date[date], -1, MONTH ) ) )
+		formatString: #,0
+		displayFolder: 1 Sales
+		lineageTag: 4a2d73db-36b8-4b1f-a02d-e500840b6d50
+
+	measure 'Orders MoM %' =
+			VAR PM = [Orders PM]
+			RETURN IF ( NOT ISBLANK ( PM ), DIVIDE ( [Orders] - PM, PM ) )
+		formatString: 0.0%
+		displayFolder: 1 Sales
+		lineageTag: 94000de7-a3b7-49fa-baa1-568753dd4913
+
+	measure 'Revenue PY' = CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( dim_date[date] ) )
+		formatString: R$ #,0.00
+		displayFolder: 1 Sales
+		lineageTag: b54699eb-a2ca-4d13-9055-cc1dd4443bdd
+
+	/// Meaningful for Jan-Aug 2018 vs Jan-Aug 2017
+	measure 'Revenue YoY %' =
+			// Meaningful for Jan-Aug 2018 vs Jan-Aug 2017
+			VAR PY = [Revenue PY]
+			RETURN IF ( PY > 0, DIVIDE ( [Revenue] - PY, PY ) )
+		formatString: 0.0%
+		displayFolder: 1 Sales
+		lineageTag: 2546d63c-b2ed-4106-89ae-235cce7c0907
+
+	/// People (customer_unique_id) with at least one sale in the current filter context
+	measure Customers =
+			// People (customer_unique_id) with at least one sale in the current filter context
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_order_items[customer_unique_id] ),
+			    fact_order_items[is_sale] = TRUE ()
+			)
+		formatString: #,0
+		displayFolder: 2 Customers
+		lineageTag: e933340e-c2cf-4da2-883d-8cb3c017d71b
+
+	/// People with 2+ sales inside the selected period
+	measure 'Repeat Customers' =
+			// People with 2+ sales inside the selected period
+			VAR SalesByCustomer =
+			    CALCULATETABLE (
+			        ADDCOLUMNS (
+			            VALUES ( fact_order_items[customer_unique_id] ),
+			            "@orders", CALCULATE ( DISTINCTCOUNT ( fact_order_items[order_id] ) )
+			        ),
+			        fact_order_items[is_sale] = TRUE ()
+			    )
+			RETURN
+			    COUNTROWS ( FILTER ( SalesByCustomer, [@orders] >= 2 ) )
+		formatString: #,0
+		displayFolder: 2 Customers
+		lineageTag: d0260e1e-8ef0-473e-aa7a-06941a77415d
+
+	measure 'Repeat Customer %' = DIVIDE ( [Repeat Customers], [Customers] )
+		formatString: 0.0%
+		displayFolder: 2 Customers
+		lineageTag: a5f6aebd-edbe-4ff9-a806-8d30ab1a84a4
+
+	/// Share of orders that are a customer's 2nd or later purchase (lifetime sequence)
+	measure 'Repeat Purchase %' =
+			// Share of orders that are a customer's 2nd or later purchase (lifetime sequence)
+			DIVIDE (
+			    CALCULATE ( COUNTROWS ( fact_orders ),
+			        fact_orders[is_repeat_purchase] = TRUE (), fact_orders[has_items] = TRUE () ),
+			    CALCULATE ( COUNTROWS ( fact_orders ),
+			        fact_orders[is_sale] = TRUE (), fact_orders[has_items] = TRUE () )
+			)
+		formatString: 0.0%
+		displayFolder: 2 Customers
+		lineageTag: fccbecbf-cd3c-40e6-8de7-9d2783592b7e
+
+	measure 'Revenue per Customer' = DIVIDE ( [Revenue], [Customers] )
+		formatString: R$ #,0.00
+		displayFolder: 2 Customers
+		lineageTag: f89bceb2-f66b-4aa0-8824-52110bb9f662
+
+	measure 'Delivered Orders' = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[is_delivered] = TRUE () )
+		formatString: #,0
+		displayFolder: 3 Operations
+		lineageTag: c08ad099-0d6b-46e6-88f3-9b0897737f96
+
+	measure 'Late Orders' = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[is_late] = TRUE () )
+		formatString: #,0
+		displayFolder: 3 Operations
+		lineageTag: 39d40c7c-3172-4f4e-ac23-89b18da22b47
+
+	measure 'On-Time Delivery %' = DIVIDE ( [Delivered Orders] - [Late Orders], [Delivered Orders] )
+		formatString: 0.0%
+		displayFolder: 3 Operations
+		lineageTag: 002f3849-aeae-4c60-97be-115bed0f3cc6
+
+	measure 'Late Delivery %' = DIVIDE ( [Late Orders], [Delivered Orders] )
+		formatString: 0.0%
+		displayFolder: 3 Operations
+		lineageTag: d690126f-9aa2-4180-9d75-ab5356409573
+
+	measure 'Avg Delivery Days' = CALCULATE ( AVERAGE ( fact_orders[delivery_days] ), fact_orders[is_delivered] = TRUE () )
+		formatString: 0.0
+		displayFolder: 3 Operations
+		lineageTag: 907ffe89-05ef-460c-8034-3061171c3b42
+
+	measure 'Avg Promised Days' = CALCULATE ( AVERAGE ( fact_orders[promised_days] ), fact_orders[is_delivered] = TRUE () )
+		formatString: 0.0
+		displayFolder: 3 Operations
+		lineageTag: 5d72fe09-d370-48e0-a7a1-4b7f0446437b
+
+	/// How many days earlier than promised the average order arrives
+	measure 'Promise Buffer Days' =
+			// How many days earlier than promised the average order arrives
+			[Avg Promised Days] - [Avg Delivery Days]
+		formatString: 0.0
+		displayFolder: 3 Operations
+		lineageTag: 016ef741-f17b-44b4-8552-2da8046cca4a
+
+	measure 'Avg Delay When Late' = CALCULATE ( AVERAGE ( fact_orders[delay_days] ), fact_orders[is_late] = TRUE () )
+		formatString: 0.0
+		displayFolder: 3 Operations
+		lineageTag: c3c610be-3893-4346-b398-30eda5d08d7f
+
+	/// Approval -> handed to carrier (seller handling time)
+	measure 'Avg Carrier Lead Days' =
+			// Approval -> handed to carrier (seller handling time)
+			AVERAGE ( fact_orders[carrier_lead_days] )
+		formatString: 0.0
+		displayFolder: 3 Operations
+		lineageTag: 2d06887f-ac3c-4631-8d84-57d4111b604d
+
+	/// Carrier pickup -> customer
+	measure 'Avg Last Mile Days' =
+			// Carrier pickup -> customer
+			AVERAGE ( fact_orders[last_mile_days] )
+		formatString: 0.0
+		displayFolder: 3 Operations
+		lineageTag: 7c812317-58b1-48df-af80-6373a03503db
+
+	measure Reviews = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[has_review] = TRUE () )
+		formatString: #,0
+		displayFolder: 4 Satisfaction
+		lineageTag: 20b34321-4713-4642-b7e4-dea677985a53
+
+	measure 'Avg Review Score' = AVERAGE ( fact_orders[review_score] )
+		formatString: 0.00
+		displayFolder: 4 Satisfaction
+		lineageTag: 4f259cd4-7bee-41b9-b420-12c436aaea8b
+
+	/// Scores 1-2
+	measure 'Negative Review %' =
+			// Scores 1-2
+			DIVIDE ( CALCULATE ( [Reviews], fact_orders[review_score] <= 2 ), [Reviews] )
+		formatString: 0.0%
+		displayFolder: 4 Satisfaction
+		lineageTag: 66ecf139-7545-448f-b4ef-1d36b98fa6e5
+
+	measure '5-Star Review %' = DIVIDE ( CALCULATE ( [Reviews], fact_orders[review_score] = 5 ), [Reviews] )
+		formatString: 0.0%
+		displayFolder: 4 Satisfaction
+		lineageTag: c21b9f96-481d-4910-959f-c5e6f06fe38f
+
+	measure 'Avg Review On Time' =
+			CALCULATE ( [Avg Review Score],
+			    fact_orders[is_delivered] = TRUE (), fact_orders[is_late] = FALSE () )
+		formatString: 0.00
+		displayFolder: 4 Satisfaction
+		lineageTag: 549bbdca-9acf-455c-977e-e38b539e64c5
+
+	measure 'Avg Review Late' = CALCULATE ( [Avg Review Score], fact_orders[is_late] = TRUE () )
+		formatString: 0.00
+		displayFolder: 4 Satisfaction
+		lineageTag: eb175c0f-be28-4454-af1f-b5061aab5677
+
+	/// Points of review score lost when an order arrives late
+	measure 'Review Gap Late vs On Time' =
+			// Points of review score lost when an order arrives late
+			[Avg Review On Time] - [Avg Review Late]
+		formatString: 0.00
+		displayFolder: 4 Satisfaction
+		lineageTag: ccbc4fb1-1f4d-4c47-a13a-b72723badb3d
+
+	measure 'Paid Orders' =
+			CALCULATE ( COUNTROWS ( fact_orders ),
+			    fact_orders[is_sale] = TRUE (), fact_orders[has_items] = TRUE (),
+			    NOT ISBLANK ( fact_orders[main_payment_type] ) )
+		formatString: #,0
+		displayFolder: 5 Payments
+		lineageTag: 22f86293-f732-419e-a467-e0e459046bc1
+
+	/// Use with main_payment_type on an axis
+	measure 'Payment Method Share %' =
+			// Use with main_payment_type on an axis
+			DIVIDE ( [Paid Orders], CALCULATE ( [Paid Orders], ALL ( fact_orders[main_payment_type] ) ) )
+		formatString: 0.0%
+		displayFolder: 5 Payments
+		lineageTag: a374e6d1-5407-49ff-a601-983173cc8199
+
+	measure 'Installment Orders %' = DIVIDE ( CALCULATE ( [Paid Orders], fact_orders[is_installment] = TRUE () ), [Paid Orders] )
+		formatString: 0.0%
+		displayFolder: 5 Payments
+		lineageTag: 9f5bd71d-e1b4-4a2c-a00a-cd0d30d01622
+
+	measure 'Avg Installments (Credit Card)' =
+			CALCULATE ( AVERAGE ( fact_orders[max_installments] ),
+			    fact_orders[main_payment_type] = "credit_card", fact_orders[is_sale] = TRUE () )
+		formatString: 0.0
+		displayFolder: 5 Payments
+		lineageTag: e89ec233-11e3-4e8e-8f9b-a4aeceac2c0b
+
+	/// Ticket from the order table: use it with payment columns (main_payment_type,
+	measure 'AOV by Order' =
+			// Ticket from the order table: use it with payment columns (main_payment_type,
+			// max_installments), which live in fact_orders
+			CALCULATE ( AVERAGE ( fact_orders[items_price] ),
+			    fact_orders[is_sale] = TRUE (), fact_orders[has_items] = TRUE () )
+		formatString: R$ #,0.00
+		displayFolder: 5 Payments
+		lineageTag: 15725d87-d7ed-4196-9116-17b28e715436
+
+	measure 'Seller Orders' =
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_order_items[order_id] ),
+			    fact_order_items[is_sale] = TRUE (), fact_order_items[is_multi_seller] = FALSE ()
+			)
+		formatString: #,0
+		displayFolder: 6 Sellers
+		lineageTag: 3c64ad98-5ba3-4f21-96b8-4cee71c25298
+
+	measure 'Seller Avg Review' =
+			CALCULATE (
+			    AVERAGEX (
+			        SUMMARIZE ( fact_order_items, fact_order_items[order_id], fact_order_items[review_score] ),
+			        fact_order_items[review_score]
+			    ),
+			    fact_order_items[is_sale] = TRUE (), fact_order_items[is_multi_seller] = FALSE ()
+			)
+		formatString: 0.00
+		displayFolder: 6 Sellers
+		lineageTag: 0104db21-0887-4efd-86bf-b6ae9dddcf80
+
+	measure 'Seller Negative Review %' =
+			VAR OrdersWithReview =
+			    CALCULATETABLE (
+			        SUMMARIZE ( fact_order_items, fact_order_items[order_id], fact_order_items[review_score] ),
+			        fact_order_items[is_sale] = TRUE (), fact_order_items[is_multi_seller] = FALSE (),
+			        NOT ISBLANK ( fact_order_items[review_score] )
+			    )
+			RETURN
+			    DIVIDE ( COUNTROWS ( FILTER ( OrdersWithReview, fact_order_items[review_score] <= 2 ) ),
+			             COUNTROWS ( OrdersWithReview ) )
+		formatString: 0.0%
+		displayFolder: 6 Sellers
+		lineageTag: 909d3648-fcb8-48bc-b0b6-eb0d002a690d
+
+	measure 'Seller Late %' =
+			VAR Delivered =
+			    CALCULATE ( DISTINCTCOUNT ( fact_order_items[order_id] ),
+			        fact_order_items[is_delivered] = TRUE (), fact_order_items[is_multi_seller] = FALSE () )
+			VAR Late =
+			    CALCULATE ( DISTINCTCOUNT ( fact_order_items[order_id] ),
+			        fact_order_items[is_late] = TRUE (), fact_order_items[is_multi_seller] = FALSE () )
+			RETURN DIVIDE ( Late, Delivered )
+		formatString: 0.0%
+		displayFolder: 6 Sellers
+		lineageTag: 6bedad80-c78a-4c04-9a57-feec838c537c
+
+	/// 1 = seller with 50+ orders whose rating is 0.3+ points below the platform average
+	measure 'Seller Risk Flag' =
+			// 1 = seller with 50+ orders whose rating is 0.3+ points below the platform average
+			VAR PlatformAvg = CALCULATE ( [Seller Avg Review], ALL ( dim_seller ) )
+			RETURN
+			    IF ( [Seller Orders] >= 50 && [Seller Avg Review] < PlatformAvg - 0.3, 1, 0 )
+		formatString: 0
+		displayFolder: 6 Sellers
+		lineageTag: f2ac3157-fc16-48cd-a9c4-0391e39da44b
+
+	measure 'Active Sellers' = CALCULATE ( DISTINCTCOUNT ( fact_order_items[seller_id] ), fact_order_items[is_sale] = TRUE () )
+		formatString: #,0
+		displayFolder: 6 Sellers
+		lineageTag: d835be87-c350-4f81-ad11-40b46538eb37
+
+	measure 'Last Refresh Label' = "Data: Jan 2017 - Aug 2018 (complete months) | Source: Olist / Kaggle"
+		displayFolder: 7 Formatting
+		lineageTag: ee355cf9-13e1-43cd-b5c5-8e1f5128a002
+
+	column Value
+		dataType: int64
+		isHidden
+		lineageTag: 1f8593bb-bdd9-4dec-97f3-abb7c1a0785c
+		summarizeBy: none
+		sourceColumn: Value
+
+	partition _Measures = m
+		mode: import
+		source = #table(type table [Value = Int64.Type], {})
+
