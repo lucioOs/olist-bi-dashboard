@@ -1,0 +1,80 @@
+dimension,table,check,severity,n_affected,n_total,detail,action,pct,status
+Completeness,orders,orders without order_items,WARNING,775,99441,"By status: unavailable=603, canceled=164, created=5, invoiced=2, shipped=1",Exclude from metrics that depend on order_items,0.7794,WARNING
+Completeness,orders,orders without order_reviews,WARNING,768,99441,"By status: delivered=646, shipped=75, canceled=20, unavailable=14, processing=6, invoiced=5, created=2",Exclude from metrics that depend on order_reviews,0.7723,WARNING
+Completeness,orders,orders without order_payments,WARNING,1,99441,By status: delivered=1,Exclude from metrics that depend on order_payments,0.001,WARNING
+Completeness,products,Missing values: product_category_name,WARNING,610,32951,"Unexpected missing values. Always missing together with: product_name_lenght, product_description_lenght, product_photos_qty","Impute, label as 'unknown' or exclude from affected metrics",1.8512,WARNING
+Completeness,products,Missing values: product_name_lenght,WARNING,610,32951,"Unexpected missing values. Always missing together with: product_category_name, product_description_lenght, product_photos_qty","Impute, label as 'unknown' or exclude from affected metrics",1.8512,WARNING
+Completeness,products,Missing values: product_description_lenght,WARNING,610,32951,"Unexpected missing values. Always missing together with: product_category_name, product_name_lenght, product_photos_qty","Impute, label as 'unknown' or exclude from affected metrics",1.8512,WARNING
+Completeness,products,Missing values: product_photos_qty,WARNING,610,32951,"Unexpected missing values. Always missing together with: product_category_name, product_name_lenght, product_description_lenght","Impute, label as 'unknown' or exclude from affected metrics",1.8512,WARNING
+Completeness,products,Missing values: product_weight_g,WARNING,2,32951,"Unexpected missing values. Always missing together with: product_length_cm, product_height_cm, product_width_cm","Impute, label as 'unknown' or exclude from affected metrics",0.0061,WARNING
+Completeness,products,Missing values: product_length_cm,WARNING,2,32951,"Unexpected missing values. Always missing together with: product_weight_g, product_height_cm, product_width_cm","Impute, label as 'unknown' or exclude from affected metrics",0.0061,WARNING
+Completeness,products,Missing values: product_height_cm,WARNING,2,32951,"Unexpected missing values. Always missing together with: product_weight_g, product_length_cm, product_width_cm","Impute, label as 'unknown' or exclude from affected metrics",0.0061,WARNING
+Completeness,products,Missing values: product_width_cm,WARNING,2,32951,"Unexpected missing values. Always missing together with: product_weight_g, product_length_cm, product_height_cm","Impute, label as 'unknown' or exclude from affected metrics",0.0061,WARNING
+Consistency,order_items,shipping_limit_date within 0-60 days of purchase,WARNING,12,112650,Median 6 days; max 1056 days,Set shipping_limit_date to NULL for implausible values,0.0107,WARNING
+Consistency,orders,Handed to carrier before approval (order_delivered_carrier_date < order_approved_at),WARNING,1359,97644,"Median gap 17.2 h, max 4109.3 h",Flag; exclude from duration metrics that use this pair of dates,1.3918,WARNING
+Consistency,orders,Delivered to customer before carrier pickup (order_delivered_customer_date < order_delivered_carrier_date),WARNING,23,96475,"Median gap 39.9 h, max 386.3 h",Flag; exclude from duration metrics that use this pair of dates,0.0238,WARNING
+Consistency,orders,Status 'delivered' without delivery date,WARNING,8,96478,,Exclude from delivery-time and on-time metrics,0.0083,WARNING
+Consistency,orders,Delivery date present but status is not 'delivered',WARNING,6,96476,By status: canceled=6,Keep status as source of truth; document,0.0062,WARNING
+Integrity,customers,customers.customer_zip_code_prefix -> geolocation.geolocation_zip_code_prefix,WARNING,278,99441,"157 distinct orphan values. e.g. 72300, 11547, 64605, 72465, 07729",Add missing parent rows or map to an 'unknown' member,0.2796,WARNING
+Integrity,products,products.product_category_name -> category_translation.product_category_name,WARNING,13,32341,"2 distinct orphan values. e.g. pc_gamer, portateis_cozinha_e_preparadores_de_alimentos",Add missing parent rows or map to an 'unknown' member,0.0402,WARNING
+Integrity,sellers,sellers.seller_zip_code_prefix -> geolocation.geolocation_zip_code_prefix,WARNING,7,3095,"7 distinct orphan values. e.g. 82040, 91901, 72580, 02285, 07412",Add missing parent rows or map to an 'unknown' member,0.2262,WARNING
+Timeliness,orders,Months with < 10% of median monthly orders,WARNING,6,26,"Range 2016-09-04 to 2018-10-17. Incomplete: 2016-09 (4), 2016-10 (324), 2016-11 (0), 2016-12 (1), 2018-09 (16), 2018-10 (4)",Restrict trend and MoM % analysis to complete months,23.0769,WARNING
+Validity,geolocation,Coordinates inside Brazil bounding box,WARNING,31,1000163,,Drop before averaging coordinates per zip prefix,0.0031,WARNING
+Validity,order_payments,Allowed values: payment_type,WARNING,3,103886,Unexpected: ['not_defined'],Map to a valid value or 'unknown',0.0029,WARNING
+Validity,order_payments,"Range payment_installments in [1, 24]",WARNING,2,103886,Offending values: 0,Set to NULL (unknown) or correct if the rule is obvious,0.0019,WARNING
+Validity,products,"Range product_weight_g in (0, inf]",WARNING,4,32949,Offending values: 0,Set to NULL (unknown) or correct if the rule is obvious,0.0121,WARNING
+Accuracy,order_items,IQR outliers: freight_value (log scale),INFO,7961,112650,"Fences [6.14, 42.70]; p50=16.26, p99=84.52, max=409.68",Keep (real high-value items); flag and cap only in visuals if needed,7.067,INFO
+Accuracy,order_items,Freight greater than item price,INFO,4124,112650,"Relevant for logistics-cost analysis (cheap, heavy items)",Keep; create flag column freight_gt_price,3.6609,INFO
+Accuracy,order_items,IQR outliers: price (log scale),INFO,1471,112650,"Fences [5.75, 822.12]; p50=74.99, p99=890.00, max=6,735.00",Keep (real high-value items); flag and cap only in visuals if needed,1.3058,INFO
+Accuracy,order_payments,IQR outliers: payment_value (log scale),INFO,2931,103886,"Fences [10.17, 892.96]; p50=100.00, p99=1,039.92, max=13,664.08",Keep (real high-value items); flag and cap only in visuals if needed,2.8214,INFO
+Accuracy,products,IQR outliers: product_weight_g (log scale),INFO,10,32949,"Fences [17.96, 30,171.10]; p50=700.00, p99=22,538.00, max=40,425.00",Keep (real high-value items); flag and cap only in visuals if needed,0.0303,INFO
+Completeness,order_reviews,Missing values: review_comment_title,INFO,87656,99224,Comments are optional,Keep (expected by business logic),88.3415,INFO
+Completeness,order_reviews,Missing values: review_comment_message,INFO,58247,99224,Comments are optional,Keep (expected by business logic),58.7025,INFO
+Completeness,orders,Missing values: order_delivered_customer_date,INFO,2965,99441,Orders not yet delivered or canceled,Keep (expected by business logic),2.9817,INFO
+Completeness,orders,Missing values: order_delivered_carrier_date,INFO,1783,99441,Orders not yet shipped or canceled,Keep (expected by business logic),1.793,INFO
+Completeness,orders,Missing values: order_approved_at,INFO,160,99441,Orders canceled/created before payment approval,Keep (expected by business logic),0.1609,INFO
+Consistency,order_payments,sum(payments) = sum(price + freight) +/- 1.0 BRL,INFO,249,98665,"Overpaid: 232 (likely installment interest), underpaid: 17 (likely vouchers). Median |diff| among flagged: 7.79 BRL","Define Revenue from order_items (price), not payments",0.2524,INFO
+Uniqueness,customers,Rows per customer_unique_id > 1,INFO,2997,96096,customer_id is per-order; customer_unique_id identifies the person (repeat buyers). Max rows for one key: 17,Handle explicitly in the data model,3.1188,INFO
+Uniqueness,geolocation,Exact duplicate rows,INFO,261831,1000163,Many GPS samples per zip prefix,Drop exact duplicates,26.1788,INFO
+Uniqueness,order_payments,Rows per order_id > 1,INFO,2961,99440,orders paid with >1 payment row -> aggregate before joining to facts. Max rows for one key: 29,Handle explicitly in the data model,2.9777,INFO
+Uniqueness,order_reviews,Rows per review_id > 1,INFO,789,98410,review_id reused across orders -> never use it alone as a key. Max rows for one key: 3,Handle explicitly in the data model,0.8017,INFO
+Uniqueness,order_reviews,Rows per order_id > 1,INFO,547,98673,orders with >1 review -> aggregate to order level before joining to facts. Max rows for one key: 3,Handle explicitly in the data model,0.5544,INFO
+Consistency,order_reviews,Review answered before it was created (review_answer_timestamp < review_creation_date),WARNING,0,99224,,Flag; exclude from duration metrics that use this pair of dates,0.0,PASS
+Consistency,orders,Approved before purchase (order_approved_at < order_purchase_timestamp),WARNING,0,99281,,Flag; exclude from duration metrics that use this pair of dates,0.0,PASS
+Consistency,orders,Delivered before purchase (order_delivered_customer_date < order_purchase_timestamp),WARNING,0,96476,,Flag; exclude from duration metrics that use this pair of dates,0.0,PASS
+Consistency,orders,Estimated delivery before purchase (order_estimated_delivery_date < order_purchase_timestamp),WARNING,0,99441,,Flag; exclude from duration metrics that use this pair of dates,0.0,PASS
+Integrity,order_items,order_items.order_id -> orders.order_id,CRITICAL,0,112650,,Add missing parent rows or map to an 'unknown' member,0.0,PASS
+Integrity,order_items,order_items.product_id -> products.product_id,CRITICAL,0,112650,,Add missing parent rows or map to an 'unknown' member,0.0,PASS
+Integrity,order_items,order_items.seller_id -> sellers.seller_id,CRITICAL,0,112650,,Add missing parent rows or map to an 'unknown' member,0.0,PASS
+Integrity,order_payments,order_payments.order_id -> orders.order_id,CRITICAL,0,103886,,Add missing parent rows or map to an 'unknown' member,0.0,PASS
+Integrity,order_reviews,order_reviews.order_id -> orders.order_id,CRITICAL,0,99224,,Add missing parent rows or map to an 'unknown' member,0.0,PASS
+Integrity,orders,orders.customer_id -> customers.customer_id,CRITICAL,0,99441,,Add missing parent rows or map to an 'unknown' member,0.0,PASS
+Uniqueness,category_translation,Primary key unique & not null (product_category_name),CRITICAL,0,71,,Deduplicate before modelling; a broken key breaks Power BI relationships,0.0,PASS
+Uniqueness,category_translation,Exact duplicate rows,WARNING,0,71,,Drop exact duplicates,0.0,PASS
+Uniqueness,customers,Primary key unique & not null (customer_id),CRITICAL,0,99441,,Deduplicate before modelling; a broken key breaks Power BI relationships,0.0,PASS
+Uniqueness,customers,Exact duplicate rows,WARNING,0,99441,,Drop exact duplicates,0.0,PASS
+Uniqueness,order_items,"Primary key unique & not null (order_id, order_item_id)",CRITICAL,0,112650,,Deduplicate before modelling; a broken key breaks Power BI relationships,0.0,PASS
+Uniqueness,order_items,Exact duplicate rows,WARNING,0,112650,,Drop exact duplicates,0.0,PASS
+Uniqueness,order_payments,"Primary key unique & not null (order_id, payment_sequential)",CRITICAL,0,103886,,Deduplicate before modelling; a broken key breaks Power BI relationships,0.0,PASS
+Uniqueness,order_payments,Exact duplicate rows,WARNING,0,103886,,Drop exact duplicates,0.0,PASS
+Uniqueness,order_reviews,"Primary key unique & not null (review_id, order_id)",CRITICAL,0,99224,,Deduplicate before modelling; a broken key breaks Power BI relationships,0.0,PASS
+Uniqueness,order_reviews,Exact duplicate rows,WARNING,0,99224,,Drop exact duplicates,0.0,PASS
+Uniqueness,orders,Primary key unique & not null (order_id),CRITICAL,0,99441,,Deduplicate before modelling; a broken key breaks Power BI relationships,0.0,PASS
+Uniqueness,orders,Exact duplicate rows,WARNING,0,99441,,Drop exact duplicates,0.0,PASS
+Uniqueness,products,Primary key unique & not null (product_id),CRITICAL,0,32951,,Deduplicate before modelling; a broken key breaks Power BI relationships,0.0,PASS
+Uniqueness,products,Exact duplicate rows,WARNING,0,32951,,Drop exact duplicates,0.0,PASS
+Uniqueness,sellers,Primary key unique & not null (seller_id),CRITICAL,0,3095,,Deduplicate before modelling; a broken key breaks Power BI relationships,0.0,PASS
+Uniqueness,sellers,Exact duplicate rows,WARNING,0,3095,,Drop exact duplicates,0.0,PASS
+Validity,all,All values parsed to target types,CRITICAL,0,1550922,,,0.0,PASS
+Validity,customers,Allowed values: customer_state,WARNING,0,99441,,Map to a valid value or 'unknown',0.0,PASS
+Validity,geolocation,Allowed values: geolocation_state,WARNING,0,1000163,,Map to a valid value or 'unknown',0.0,PASS
+Validity,order_items,"Range price in (0, inf]",WARNING,0,112650,,Set to NULL (unknown) or correct if the rule is obvious,0.0,PASS
+Validity,order_items,"Range freight_value in [0, inf]",WARNING,0,112650,,Set to NULL (unknown) or correct if the rule is obvious,0.0,PASS
+Validity,order_payments,"Range payment_value in [0, inf]",WARNING,0,103886,,Set to NULL (unknown) or correct if the rule is obvious,0.0,PASS
+Validity,order_reviews,"Range review_score in [1, 5]",WARNING,0,99224,,Set to NULL (unknown) or correct if the rule is obvious,0.0,PASS
+Validity,orders,Allowed values: order_status,WARNING,0,99441,,Map to a valid value or 'unknown',0.0,PASS
+Validity,products,"Range product_length_cm in (0, inf]",WARNING,0,32949,,Set to NULL (unknown) or correct if the rule is obvious,0.0,PASS
+Validity,products,"Range product_height_cm in (0, inf]",WARNING,0,32949,,Set to NULL (unknown) or correct if the rule is obvious,0.0,PASS
+Validity,products,"Range product_width_cm in (0, inf]",WARNING,0,32949,,Set to NULL (unknown) or correct if the rule is obvious,0.0,PASS
+Validity,products,"Range product_photos_qty in [0, inf]",WARNING,0,32341,,Set to NULL (unknown) or correct if the rule is obvious,0.0,PASS
+Validity,sellers,Allowed values: seller_state,WARNING,0,3095,,Map to a valid value or 'unknown',0.0,PASS

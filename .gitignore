@@ -1,0 +1,31 @@
+# --- Data (raw data is not redistributed; download it from Kaggle) ---
+data/raw/*
+data/interim/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+# Processed CSVs are large; keep them out of git (regenerate with `python -m src.main`)
+data/processed/*
+!data/processed/.gitkeep
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Power BI temp files ---
+powerbi/*.pbix.bak
+~$*
+
+# --- OS / IDE ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
