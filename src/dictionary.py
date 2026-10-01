@@ -61,6 +61,11 @@ COLUMN_DOCS: dict[str, str] = {
     "review_count": "Number of reviews received by the order",
     "has_comment": "Review includes a title or message",
     "review_response_hours": "Hours Olist took to answer the review survey",
+    "delivery_bucket": "Delivery timing vs. promise (10+ days early ... 8+ days late)",
+    "delivery_bucket_order": "Sort key for delivery_bucket",
+    "installment_bucket": "Credit-card installment band (1, 2-3, 4-6, 7+) or 'Not credit card'",
+    "installment_bucket_order": "Sort key for installment_bucket",
+    "seller_label": "Short readable seller code (S- + first 6 chars of seller_id)",
     # ---- fact_order_items
     "shipping_limit_date": "Seller deadline to hand the item to the carrier",
     "price": "Item price (BRL)",

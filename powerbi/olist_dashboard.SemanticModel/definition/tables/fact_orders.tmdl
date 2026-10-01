@@ -400,6 +400,52 @@ table fact_orders
 
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
+	column installment_bucket
+		dataType: string
+		lineageTag: 46cedc9b-62b0-40c2-ac92-dd116208b81a
+		summarizeBy: none
+		sourceColumn: installment_bucket
+		sortByColumn: installment_bucket_order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column installment_bucket_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1d7983e0-8e48-49e7-b435-de5f737339ce
+		summarizeBy: none
+		sourceColumn: installment_bucket_order
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column delivery_bucket
+		dataType: string
+		lineageTag: ad65e577-339f-46ff-94be-79d1e985b9ac
+		summarizeBy: none
+		sourceColumn: delivery_bucket
+		sortByColumn: delivery_bucket_order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column delivery_bucket_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 8d7d4abd-4d0f-499f-baa2-96de432190f9
+		summarizeBy: none
+		sourceColumn: delivery_bucket_order
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
 	partition fact_orders = m
 		mode: import
 		source =
@@ -438,6 +484,8 @@ table fact_orders
 				        {"max_installments", Int64.Type},
 				        {"is_installment", type logical},
 				        {"used_voucher", type logical},
+				        {"installment_bucket", type text},
+				        {"installment_bucket_order", Int64.Type},
 				        {"order_approved_at", type datetime},
 				        {"order_delivered_carrier_date", type datetime},
 				        {"order_delivered_customer_date", type datetime},
@@ -448,6 +496,8 @@ table fact_orders
 				        {"delivery_days", type number},
 				        {"promised_days", type number},
 				        {"delay_days", type number},
+				        {"delivery_bucket", type text},
+				        {"delivery_bucket_order", Int64.Type},
 				        {"flag_carrier_before_approval", type logical},
 				        {"flag_delivered_before_carrier", type logical},
 				        {"has_review", type logical},

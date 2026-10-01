@@ -70,3 +70,13 @@ def test_model_fails_loudly_on_orphans(tables):
     cleaned, _ = c.clean_all(tables)
     with pytest.raises(AssertionError, match="orphans"):
         build_model(cleaned, tables)
+
+
+def test_delivery_bucket_edges():
+    from src.model import delivery_bucket
+    labels, order = delivery_bucket(pd.Series([-15, -10, -9, -1, 0, 1, 3, 4, 7, 8, None]))
+    assert labels.tolist()[:10] == [
+        "10+ days early", "10+ days early", "1-9 days early", "1-9 days early",
+        "On promised day", "1-3 days late", "1-3 days late", "4-7 days late",
+        "4-7 days late", "8+ days late"]
+    assert pd.isna(labels.iloc[-1]) and order.tolist()[:3] == [1, 1, 2]

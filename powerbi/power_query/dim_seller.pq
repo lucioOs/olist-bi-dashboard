@@ -9,6 +9,7 @@ let
     Nulls = Table.ReplaceValue(Promoted, "", null, Replacer.ReplaceValue, Table.ColumnNames(Promoted)),
     Typed = Table.TransformColumnTypes(Nulls, {
         {"seller_id", type text},
+        {"seller_label", type text},
         {"zip_code_prefix", type text},
         {"city", type text},
         {"state", type text},

@@ -73,6 +73,14 @@ table dim_seller
 
 		annotation SummarizationSetBy = Automatic
 
+	column seller_label
+		dataType: string
+		lineageTag: 70deaabb-6a3e-4b4c-a068-c0ad07f86549
+		summarizeBy: none
+		sourceColumn: seller_label
+
+		annotation SummarizationSetBy = Automatic
+
 	partition dim_seller = m
 		mode: import
 		source =
@@ -87,6 +95,7 @@ table dim_seller
 				    Nulls = Table.ReplaceValue(Promoted, "", null, Replacer.ReplaceValue, Table.ColumnNames(Promoted)),
 				    Typed = Table.TransformColumnTypes(Nulls, {
 				        {"seller_id", type text},
+				        {"seller_label", type text},
 				        {"zip_code_prefix", type text},
 				        {"city", type text},
 				        {"state", type text},

@@ -100,13 +100,48 @@ def build_dim_seller(clean: dict[str, pd.DataFrame]) -> pd.DataFrame:
         "seller_state": "state"})
     s["state"] = s["state"].astype(str)
     s["region"] = s["state"].map(cfg.STATE_REGION)
-    return s[["seller_id", "zip_code_prefix", "city", "state", "region",
+    # Short readable label for visuals (the 32-char hash is unreadable on an axis)
+    s["seller_label"] = "S-" + s["seller_id"].str[:6].str.upper()
+    return s[["seller_id", "seller_label", "zip_code_prefix", "city", "state", "region",
               "lat", "lng", "geo_source"]]
 
 
 # --------------------------------------------------------------------------- #
 # Facts
 # --------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
+# Business segmentations (computed upstream, not as DAX calculated columns:
+# logic lives in one tested place and the model stays light)
+# --------------------------------------------------------------------------- #
+DELIVERY_BUCKETS = [  # (upper bound of delay_days, label); negative = early
+    (-10, "10+ days early"), (-1, "1-9 days early"), (0, "On promised day"),
+    (3, "1-3 days late"), (7, "4-7 days late"), (float("inf"), "8+ days late"),
+]
+INSTALLMENT_BUCKETS = [(1, "1"), (3, "2-3"), (6, "4-6"), (float("inf"), "7+")]
+
+
+def delivery_bucket(delay_days: pd.Series) -> tuple[pd.Series, pd.Series]:
+    """Label + sort order for delivery timing vs. promise (NULL if not delivered)."""
+    edges = [-float("inf")] + [b for b, _ in DELIVERY_BUCKETS]
+    labels = [lbl for _, lbl in DELIVERY_BUCKETS]
+    cat = pd.cut(delay_days, bins=edges, labels=labels, right=True)
+    order = cat.cat.codes.where(cat.notna()).add(1).astype("Int64")
+    return cat.astype("string"), order
+
+
+def installment_bucket(max_installments: pd.Series, payment_type: pd.Series
+                       ) -> tuple[pd.Series, pd.Series]:
+    """Installment band for credit-card orders; other methods get their own label."""
+    edges = [0] + [b for b, _ in INSTALLMENT_BUCKETS]
+    labels = [lbl for _, lbl in INSTALLMENT_BUCKETS]
+    cat = pd.cut(max_installments.astype("float"), bins=edges, labels=labels)
+    label = cat.astype("string").where(payment_type == "credit_card", "Not credit card")
+    label = label.where(payment_type.notna())
+    order = cat.cat.codes.add(1).astype("Int64").where(payment_type == "credit_card", 9)
+    order = order.where(payment_type.notna())
+    return label, order
+
+
 def build_fact_orders(clean: dict[str, pd.DataFrame]) -> pd.DataFrame:
     o = clean["orders"].merge(clean["customer_map"], on="customer_id", how="left")
 
@@ -137,6 +172,9 @@ def build_fact_orders(clean: dict[str, pd.DataFrame]) -> pd.DataFrame:
     o["payment_total"] = o["payment_total"].round(2)
     o["is_multi_seller"] = o["sellers_count"] > 1
     o["is_installment"] = (o["max_installments"] > 1).astype("boolean")
+    o["delivery_bucket"], o["delivery_bucket_order"] = delivery_bucket(o["delay_days"])
+    o["installment_bucket"], o["installment_bucket_order"] = installment_bucket(
+        o["max_installments"], o["main_payment_type"])
 
     # Purchase sequence per PERSON, counting only real sales
     o = o.sort_values(["customer_unique_id", "order_purchase_timestamp"])
@@ -157,12 +195,12 @@ def build_fact_orders(clean: dict[str, pd.DataFrame]) -> pd.DataFrame:
         "items_price", "freight_total", "order_value",
         # payments
         "payment_total", "main_payment_type", "payment_methods", "max_installments",
-        "is_installment", "used_voucher",
+        "is_installment", "used_voucher", "installment_bucket", "installment_bucket_order",
         # delivery
         "order_approved_at", "order_delivered_carrier_date",
         "order_delivered_customer_date", "order_estimated_delivery_date",
         "approval_hours", "carrier_lead_days", "last_mile_days", "delivery_days",
-        "promised_days", "delay_days",
+        "promised_days", "delay_days", "delivery_bucket", "delivery_bucket_order",
         "flag_carrier_before_approval", "flag_delivered_before_carrier",
         # satisfaction
         "has_review", "review_score", "review_count", "has_comment", "review_response_hours",
