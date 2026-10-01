@@ -214,6 +214,15 @@ BRAZIL_STATES = frozenset(
     "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split()
 )
 
+# IBGE macro-regions: a useful slicer level above the 27 states
+STATE_REGION = {
+    **dict.fromkeys(["AC", "AP", "AM", "PA", "RO", "RR", "TO"], "North"),
+    **dict.fromkeys(["AL", "BA", "CE", "MA", "PB", "PE", "PI", "RN", "SE"], "Northeast"),
+    **dict.fromkeys(["DF", "GO", "MT", "MS"], "Center-West"),
+    **dict.fromkeys(["ES", "MG", "RJ", "SP"], "Southeast"),
+    **dict.fromkeys(["PR", "RS", "SC"], "South"),
+}
+
 ALLOWED_VALUES: dict[tuple[str, str], frozenset] = {
     ("orders", "order_status"): frozenset(
         {"created", "approved", "invoiced", "processing", "shipped",

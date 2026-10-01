@@ -1,6 +1,6 @@
 # Data Quality Report - Olist Brazilian E-Commerce
 
-*Generated automatically by `python -m src.main` on 2026-09-30 18:51. Source: [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).*
+*Generated automatically by `python -m src.main` on 2026-09-30 19:05. Source: [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).*
 
 ## 1. Summary
 
@@ -14,14 +14,14 @@
 
 | table                | file                                  |      rows |   columns |   memory_mb |   null_cells_pct | date_range               |
 |:---------------------|:--------------------------------------|----------:|----------:|------------:|-----------------:|:-------------------------|
-| orders               | olist_orders_dataset.csv              |    99,441 |         8 |       12.10 |             0.62 | 2016-09-04 to 2018-11-12 |
+| orders               | olist_orders_dataset.csv              |    99,441 |         8 |       12.00 |             0.62 | 2016-09-04 to 2018-11-12 |
 | order_items          | olist_order_items_dataset.csv         |   112,650 |         7 |       16.60 |             0.00 | 2016-09-19 to 2020-04-09 |
 | order_payments       | olist_order_payments_dataset.csv      |   103,886 |         5 |        5.70 |             0.00 | -                        |
-| order_reviews        | olist_order_reviews_dataset.csv       |    99,224 |         7 |       14.40 |            21.01 | 2016-10-02 to 2018-10-29 |
+| order_reviews        | olist_order_reviews_dataset.csv       |    99,224 |         7 |       14.30 |            21.01 | 2016-10-02 to 2018-10-29 |
 | customers            | olist_customers_dataset.csv           |    99,441 |         5 |       11.20 |             0.00 | -                        |
 | products             | olist_products_dataset.csv            |    32,951 |         9 |        3.20 |             0.83 | -                        |
 | sellers              | olist_sellers_dataset.csv             |     3,095 |         4 |        0.20 |             0.00 | -                        |
-| geolocation          | olist_geolocation_dataset.csv         | 1,000,163 |         5 |       48.70 |             0.00 | -                        |
+| geolocation          | olist_geolocation_dataset.csv         | 1,000,163 |         5 |       48.60 |             0.00 | -                        |
 | category_translation | product_category_name_translation.csv |        71 |         2 |        0.00 |             0.00 | -                        |
 
 ## 3. Findings (checks that did not pass)

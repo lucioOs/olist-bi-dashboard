@@ -13,8 +13,8 @@ and to turn the answer into concrete actions for Sales, Marketing, Operations an
 | Stage | Deliverable | Status |
 |---|---|---|
 | 1 | Data loading + data-quality validation ([report](reports/data_quality_report.md)) | Done |
-| 2 | Cleaning pipeline + business SQL queries | Pending |
-| 3 | Star-schema model + DAX measures | Pending |
+| 2 | Cleaning pipeline, star schema export ([model](reports/data_model.md), [cleaning log](reports/cleaning_log.md)) and 9 business SQL queries ([results](reports/sql_results.md)) | Done |
+| 3 | Power BI model (relationships) + DAX measures | Pending |
 | 4 | 4-page Power BI dashboard | Pending |
 | 5 | Executive summary (5 findings + recommendations) | Pending |
 
@@ -30,7 +30,12 @@ olist-bi-dashboard/
 │   ├── config.py     # paths, schemas and every data-quality rule
 │   ├── load.py       # typed loading of the 9 tables
 │   ├── validate.py   # data-quality checks (never modifies data)
-│   ├── report.py     # Markdown/CSV report + figures
+│   ├── report.py     # data-quality report (Markdown/CSV + figures)
+│   ├── clean.py      # treatments from the quality report, with a cleaning log
+│   ├── model.py      # star schema (2 facts, 4 dims) + integrity checks
+│   ├── dictionary.py # business definition of every column
+│   ├── export.py     # CSVs for Power BI + model documentation
+│   ├── run_sql.py    # runs sql/business_queries.sql on DuckDB
 │   └── main.py       # pipeline entry point
 ├── tests/            # pytest suite with a synthetic dataset of planted defects
 ├── sql/              # business queries
@@ -53,8 +58,9 @@ pip install -r requirements.txt
 2. Run the pipeline and the tests:
 
 ```bash
-python -m src.main        # writes reports/data_quality_report.md
-python -m pytest -q
+python -m src.main        # validate -> clean -> model -> data/processed/*.csv
+python -m src.run_sql     # business queries -> reports/sql_results.md
+python -m pytest -q       # 20 unit tests
 ```
 
 ## Data-quality approach
@@ -71,6 +77,24 @@ Main findings:
 - 6 purchase months are incomplete (Sep-Dec 2016, Sep-Oct 2018). Trend analysis uses
   **Jan 2017 - Aug 2018**.
 - 1,359 orders appear to be handed to the carrier before payment approval. These rows are excluded from duration metrics.
+
+## Data model
+
+Two fact tables at different grains share conformed dimensions. All relationships are
+one-to-many and single-direction. Full dictionary: [reports/data_model.md](reports/data_model.md).
+
+```mermaid
+erDiagram
+    dim_customer ||--o{ fact_orders : "customer_unique_id"
+    dim_date ||--o{ fact_orders : "date_key"
+    dim_customer ||--o{ fact_order_items : "customer_unique_id"
+    dim_date ||--o{ fact_order_items : "date_key"
+    dim_product ||--o{ fact_order_items : "product_id"
+    dim_seller ||--o{ fact_order_items : "seller_id"
+```
+
+The pipeline stops if a primary key is duplicated, a foreign key is orphaned, or revenue and
+payments do not reconcile with the raw tables (16 integrity checks).
 
 ## Data source and license
 
