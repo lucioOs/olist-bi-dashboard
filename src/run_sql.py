@@ -62,7 +62,7 @@ def run_all() -> dict[str, pd.DataFrame]:
         logger.info("%-26s %4d rows", qid, len(df))
         md += [f"## {qid}", "", f"**{question}**", "",
                df.to_markdown(index=False, floatfmt=",.2f"), ""]
-    (cfg.REPORTS_DIR / "sql_results.md").write_text("\n".join(md), encoding="utf-8")
+    (cfg.REPORTS_DIR / "sql_results.md").write_text("\n".join(md), encoding="utf-8", newline="\n")
     return results
 
 

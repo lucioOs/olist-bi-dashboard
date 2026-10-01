@@ -184,7 +184,7 @@ GROUP BY main_payment_type, installment_bucket
 ORDER BY main_payment_type, installment_bucket;
 
 
--- name: q08_seller_risk | Which sellers combine high volume with poor ratings?
+-- name: q08_seller_risk | Which sellers combine high volume (50+ orders) with ratings 0.3+ below the platform?
 -- Order-level review attributed to the seller; multi-seller orders excluded so
 -- each review belongs to exactly one seller.
 WITH seller_orders AS (
@@ -209,26 +209,25 @@ revenue AS (
     SELECT seller_id, SUM(price) AS revenue
     FROM fact_order_items WHERE is_sale GROUP BY seller_id
 ),
-ranked AS (
-    SELECT st.*, r.revenue,
-           NTILE(4) OVER (ORDER BY st.orders DESC)      AS volume_quartile,
-           AVG(st.avg_review) OVER ()                   AS platform_avg_review
-    FROM seller_stats st
-    JOIN revenue r USING (seller_id)
-    WHERE st.orders >= 50                               -- minimum sample for a fair rating
+platform AS (
+    -- same baseline as the DAX measure [Seller Avg Review] with ALL(dim_seller)
+    SELECT AVG(review_score) AS platform_avg_review FROM seller_orders
 )
-SELECT seller_id,
-       state,
-       orders,
-       ROUND(CAST(revenue AS NUMERIC), 2)                      AS revenue,
-       ROUND(CAST(avg_review AS NUMERIC), 2)                   AS avg_review,
-       ROUND(CAST(100.0 * negative_rate AS NUMERIC), 1)        AS negative_review_pct,
-       ROUND(CAST(100.0 * late_rate AS NUMERIC), 1)            AS late_pct,
-       volume_quartile
-FROM ranked
-WHERE volume_quartile <= 2                     -- top half by volume among sellers with 50+ orders
-  AND avg_review < platform_avg_review - 0.3   -- clearly below the average of these sellers
-ORDER BY orders DESC;
+SELECT st.seller_id,
+       st.state,
+       st.orders,
+       ROUND(CAST(r.revenue AS NUMERIC), 2)                         AS revenue,
+       ROUND(CAST(st.avg_review AS NUMERIC), 2)                     AS avg_review,
+       ROUND(CAST(p.platform_avg_review AS NUMERIC), 2)             AS platform_avg_review,
+       ROUND(CAST(100.0 * st.negative_rate AS NUMERIC), 1)          AS negative_review_pct,
+       ROUND(CAST(100.0 * st.late_rate AS NUMERIC), 1)              AS late_pct,
+       NTILE(4) OVER (ORDER BY st.orders DESC)                      AS volume_quartile_among_flagged
+FROM seller_stats st
+JOIN revenue r USING (seller_id)
+CROSS JOIN platform p
+WHERE st.orders >= 50                                   -- minimum sample for a fair rating
+  AND st.avg_review < p.platform_avg_review - 0.3       -- rule shared with DAX [Seller Risk Flag]
+ORDER BY st.orders DESC;
 
 
 -- name: q09_seller_concentration | How concentrated is revenue among sellers?

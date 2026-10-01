@@ -14,7 +14,7 @@ and to turn the answer into concrete actions for Sales, Marketing, Operations an
 |---|---|---|
 | 1 | Data loading + data-quality validation ([report](reports/data_quality_report.md)) | Done |
 | 2 | Cleaning pipeline, star schema export ([model](reports/data_model.md), [cleaning log](reports/cleaning_log.md)) and 9 business SQL queries ([results](reports/sql_results.md)) | Done |
-| 3 | Power BI model (relationships) + DAX measures | Pending |
+| 3 | Power BI model: typed Power Query scripts, relationships and 46 DAX measures ([setup](powerbi/README.md)) | In progress |
 | 4 | 4-page Power BI dashboard | Pending |
 | 5 | Executive summary (5 findings + recommendations) | Pending |
 

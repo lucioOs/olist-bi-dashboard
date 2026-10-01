@@ -189,6 +189,6 @@ def write_report(checks: pd.DataFrame, profile: pd.DataFrame,
 
     checks.to_csv(cfg.REPORTS_DIR / "data_quality_checks.csv", index=False)
     md_path = cfg.REPORTS_DIR / "data_quality_report.md"
-    md_path.write_text(build_markdown(checks, profile, tables), encoding="utf-8")
+    md_path.write_text(build_markdown(checks, profile, tables), encoding="utf-8", newline="\n")
     logger.info("Report written to %s", md_path.relative_to(cfg.ROOT_DIR))
     return md_path

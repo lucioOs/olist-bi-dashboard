@@ -1,0 +1,253 @@
+// =============================================================================
+// Olist BI - DAX measures
+// Create an empty table "_Measures" (Home > Enter data > OK) and add each
+// measure below with Modeling > New measure. The [Display folder] is noted in
+// each header. Formats: money "R$ #,0.00"; % "0.0%"; days "0.0".
+//
+// Grain rules (see reports/data_model.md):
+//   * Revenue / Orders / AOV come from fact_order_items, so they respond to
+//     category, product and seller slicers.
+//   * Delivery, review and payment KPIs come from fact_orders (1 row per order).
+//   * Seller-level satisfaction uses the order context copied onto
+//     fact_order_items, aggregated back to ONE row per order with SUMMARIZE.
+// =============================================================================
+
+
+// ---------------------------------------------------------------- [1 Sales]
+
+Revenue =
+// Sum of item prices for real sales (excludes canceled / unavailable orders)
+CALCULATE ( SUM ( fact_order_items[price] ), fact_order_items[is_sale] = TRUE () )
+
+Orders =
+CALCULATE (
+    DISTINCTCOUNT ( fact_order_items[order_id] ),
+    fact_order_items[is_sale] = TRUE ()
+)
+
+AOV =
+// Average order value (ticket promedio)
+DIVIDE ( [Revenue], [Orders] )
+
+Items Sold =
+CALCULATE ( COUNTROWS ( fact_order_items ), fact_order_items[is_sale] = TRUE () )
+
+Freight =
+CALCULATE ( SUM ( fact_order_items[freight_value] ), fact_order_items[is_sale] = TRUE () )
+
+Freight % of Revenue =
+DIVIDE ( [Freight], [Revenue] )
+
+Revenue PM =
+// Previous month; blank when either month is incomplete (avoids fake +-1000 % spikes)
+VAR CurrentComplete =
+    NOT ( FALSE () IN VALUES ( dim_date[is_complete_month] ) )
+VAR PreviousComplete =
+    CALCULATE (
+        COUNTROWS ( dim_date ),
+        DATEADD ( dim_date[date], -1, MONTH ),
+        dim_date[is_complete_month] = TRUE ()
+    ) > 0
+RETURN
+    IF ( CurrentComplete && PreviousComplete,
+        CALCULATE ( [Revenue], DATEADD ( dim_date[date], -1, MONTH ) ) )
+
+Revenue MoM % =
+VAR PM = [Revenue PM]
+RETURN IF ( NOT ISBLANK ( PM ), DIVIDE ( [Revenue] - PM, PM ) )
+
+Orders PM =
+IF ( NOT ISBLANK ( [Revenue PM] ),
+    CALCULATE ( [Orders], DATEADD ( dim_date[date], -1, MONTH ) ) )
+
+Orders MoM % =
+VAR PM = [Orders PM]
+RETURN IF ( NOT ISBLANK ( PM ), DIVIDE ( [Orders] - PM, PM ) )
+
+Revenue PY =
+CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( dim_date[date] ) )
+
+Revenue YoY % =
+// Meaningful for Jan-Aug 2018 vs Jan-Aug 2017
+VAR PY = [Revenue PY]
+RETURN IF ( PY > 0, DIVIDE ( [Revenue] - PY, PY ) )
+
+
+// ------------------------------------------------------------ [2 Customers]
+
+Customers =
+// People (customer_unique_id) with at least one sale in the current filter context
+CALCULATE (
+    DISTINCTCOUNT ( fact_order_items[customer_unique_id] ),
+    fact_order_items[is_sale] = TRUE ()
+)
+
+Repeat Customers =
+// People with 2+ sales inside the selected period
+VAR SalesByCustomer =
+    CALCULATETABLE (
+        ADDCOLUMNS (
+            VALUES ( fact_order_items[customer_unique_id] ),
+            "@orders", CALCULATE ( DISTINCTCOUNT ( fact_order_items[order_id] ) )
+        ),
+        fact_order_items[is_sale] = TRUE ()
+    )
+RETURN
+    COUNTROWS ( FILTER ( SalesByCustomer, [@orders] >= 2 ) )
+
+Repeat Customer % =
+DIVIDE ( [Repeat Customers], [Customers] )
+
+Repeat Purchase % =
+// Share of orders that are a customer's 2nd or later purchase (lifetime sequence)
+DIVIDE (
+    CALCULATE ( COUNTROWS ( fact_orders ),
+        fact_orders[is_repeat_purchase] = TRUE (), fact_orders[has_items] = TRUE () ),
+    CALCULATE ( COUNTROWS ( fact_orders ),
+        fact_orders[is_sale] = TRUE (), fact_orders[has_items] = TRUE () )
+)
+
+Revenue per Customer =
+DIVIDE ( [Revenue], [Customers] )
+
+
+// ----------------------------------------------------------- [3 Operations]
+
+Delivered Orders =
+CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[is_delivered] = TRUE () )
+
+Late Orders =
+CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[is_late] = TRUE () )
+
+On-Time Delivery % =
+DIVIDE ( [Delivered Orders] - [Late Orders], [Delivered Orders] )
+
+Late Delivery % =
+DIVIDE ( [Late Orders], [Delivered Orders] )
+
+Avg Delivery Days =
+CALCULATE ( AVERAGE ( fact_orders[delivery_days] ), fact_orders[is_delivered] = TRUE () )
+
+Avg Promised Days =
+CALCULATE ( AVERAGE ( fact_orders[promised_days] ), fact_orders[is_delivered] = TRUE () )
+
+Promise Buffer Days =
+// How many days earlier than promised the average order arrives
+[Avg Promised Days] - [Avg Delivery Days]
+
+Avg Delay When Late =
+CALCULATE ( AVERAGE ( fact_orders[delay_days] ), fact_orders[is_late] = TRUE () )
+
+Avg Carrier Lead Days =
+// Approval -> handed to carrier (seller handling time)
+AVERAGE ( fact_orders[carrier_lead_days] )
+
+Avg Last Mile Days =
+// Carrier pickup -> customer
+AVERAGE ( fact_orders[last_mile_days] )
+
+
+// --------------------------------------------------------- [4 Satisfaction]
+
+Reviews =
+CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[has_review] = TRUE () )
+
+Avg Review Score =
+AVERAGE ( fact_orders[review_score] )
+
+Negative Review % =
+// Scores 1-2
+DIVIDE ( CALCULATE ( [Reviews], fact_orders[review_score] <= 2 ), [Reviews] )
+
+5-Star Review % =
+DIVIDE ( CALCULATE ( [Reviews], fact_orders[review_score] = 5 ), [Reviews] )
+
+Avg Review On Time =
+CALCULATE ( [Avg Review Score],
+    fact_orders[is_delivered] = TRUE (), fact_orders[is_late] = FALSE () )
+
+Avg Review Late =
+CALCULATE ( [Avg Review Score], fact_orders[is_late] = TRUE () )
+
+Review Gap Late vs On Time =
+// Points of review score lost when an order arrives late
+[Avg Review On Time] - [Avg Review Late]
+
+
+// ------------------------------------------------------------- [5 Payments]
+
+Paid Orders =
+CALCULATE ( COUNTROWS ( fact_orders ),
+    fact_orders[is_sale] = TRUE (), fact_orders[has_items] = TRUE (),
+    NOT ISBLANK ( fact_orders[main_payment_type] ) )
+
+Payment Method Share % =
+// Use with main_payment_type on an axis
+DIVIDE ( [Paid Orders], CALCULATE ( [Paid Orders], ALL ( fact_orders[main_payment_type] ) ) )
+
+Installment Orders % =
+DIVIDE ( CALCULATE ( [Paid Orders], fact_orders[is_installment] = TRUE () ), [Paid Orders] )
+
+Avg Installments (Credit Card) =
+CALCULATE ( AVERAGE ( fact_orders[max_installments] ),
+    fact_orders[main_payment_type] = "credit_card", fact_orders[is_sale] = TRUE () )
+
+AOV by Order =
+// Ticket from the order table: use it with payment columns (main_payment_type,
+// max_installments), which live in fact_orders
+CALCULATE ( AVERAGE ( fact_orders[items_price] ),
+    fact_orders[is_sale] = TRUE (), fact_orders[has_items] = TRUE () )
+
+
+// -------------------------------------------------------------- [6 Sellers]
+// Orders with several sellers share one review -> excluded for fair attribution.
+
+Seller Orders =
+CALCULATE (
+    DISTINCTCOUNT ( fact_order_items[order_id] ),
+    fact_order_items[is_sale] = TRUE (), fact_order_items[is_multi_seller] = FALSE ()
+)
+
+Seller Avg Review =
+CALCULATE (
+    AVERAGEX (
+        SUMMARIZE ( fact_order_items, fact_order_items[order_id], fact_order_items[review_score] ),
+        fact_order_items[review_score]
+    ),
+    fact_order_items[is_sale] = TRUE (), fact_order_items[is_multi_seller] = FALSE ()
+)
+
+Seller Negative Review % =
+VAR OrdersWithReview =
+    CALCULATETABLE (
+        SUMMARIZE ( fact_order_items, fact_order_items[order_id], fact_order_items[review_score] ),
+        fact_order_items[is_sale] = TRUE (), fact_order_items[is_multi_seller] = FALSE (),
+        NOT ISBLANK ( fact_order_items[review_score] )
+    )
+RETURN
+    DIVIDE ( COUNTROWS ( FILTER ( OrdersWithReview, fact_order_items[review_score] <= 2 ) ),
+             COUNTROWS ( OrdersWithReview ) )
+
+Seller Late % =
+VAR Delivered =
+    CALCULATE ( DISTINCTCOUNT ( fact_order_items[order_id] ),
+        fact_order_items[is_delivered] = TRUE (), fact_order_items[is_multi_seller] = FALSE () )
+VAR Late =
+    CALCULATE ( DISTINCTCOUNT ( fact_order_items[order_id] ),
+        fact_order_items[is_late] = TRUE (), fact_order_items[is_multi_seller] = FALSE () )
+RETURN DIVIDE ( Late, Delivered )
+
+Seller Risk Flag =
+// 1 = seller with 50+ orders whose rating is 0.3+ points below the platform average
+VAR PlatformAvg = CALCULATE ( [Seller Avg Review], ALL ( dim_seller ) )
+RETURN
+    IF ( [Seller Orders] >= 50 && [Seller Avg Review] < PlatformAvg - 0.3, 1, 0 )
+
+Active Sellers =
+CALCULATE ( DISTINCTCOUNT ( fact_order_items[seller_id] ), fact_order_items[is_sale] = TRUE () )
+
+
+// ---------------------------------------------------------- [7 Formatting]
+
+Last Refresh Label =
+"Data: Jan 2017 - Aug 2018 (complete months) | Source: Olist / Kaggle"

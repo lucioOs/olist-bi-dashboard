@@ -14,7 +14,8 @@ import time
 
 from src import config as cfg
 from src.clean import clean_all
-from src.export import export_csv, write_cleaning_log, write_data_model_doc
+from src.export import (export_csv, write_cleaning_log, write_data_model_doc,
+                        write_power_query)
 from src.load import load_all
 from src.model import build_model
 from src.report import write_report
@@ -56,6 +57,7 @@ def main(argv: list[str] | None = None) -> int:
     model, model_checks = build_model(clean, raw)
     export_csv(model)
     write_data_model_doc(model, model_checks)
+    write_power_query(model)
 
     summary = checks["status"].value_counts().to_dict()
     log.info("Quality checks: %s | model integrity: %d/%d PASS | done in %.1fs",
